@@ -60,11 +60,7 @@ def _pre_run_cell(info):
 	args=_connection.recv()[1:]
 	_inkscape_scripting.parse_arguments(args)
 	assert _inkscape_scripting.options.input_file is not None
-	print("args=", args)
-	print("input_file=", _inkscape_scripting.options.input_file)
-	print("input content=", Path(_inkscape_scripting.options.input_file).read_bytes())
 	_inkscape_scripting.load_raw()
-	print("document=", _inkscape_scripting.document)
 	simple_inkscape_scripting._simple_top=simple_inkscape_scripting.SimpleTopLevel(
 			_inkscape_scripting.svg, _inkscape_scripting)
 	_refresh_global_variables()
@@ -95,8 +91,6 @@ def _click_window_button():
 	finally:
 		_xdo.focus_window(old_focused_window)
 
-_first_time_post_run_cell=True
-
 def _post_run_cell(result):
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#post-run-cell
@@ -108,16 +102,11 @@ def _post_run_cell(result):
 		return
 	content: bytes=b""
 	try:
-		global _first_time_post_run_cell
-		if _first_time_post_run_cell:
-			_first_time_post_run_cell=False
-			return
-		assert _connection is not None
-		with io.BytesIO() as f:
-			_inkscape_scripting.save(f)
-			content=f.getvalue()
+		if _inkscape_scripting.has_changed(None):
+			with io.BytesIO() as f:
+				_inkscape_scripting.save(f)
+				content=f.getvalue()
 	finally:  # whatever error happens, must send to unblock the client
-		print("**content=", content)
 		_connection.send(content)
 		_connection.__exit__(None, None, None)
 		_connection=None
