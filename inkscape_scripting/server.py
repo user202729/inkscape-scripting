@@ -11,7 +11,6 @@ from pathlib import Path
 import IPython
 from traitlets.config import Config
 
-
 from inkscape_scripting.constants import connection_address, connection_family
 
 try:
@@ -26,10 +25,7 @@ except ImportError:
 
 _connection: Any=None
 
-class InkscapeScripting(SimpleInkscapeScripting):
-	pass
-
-_inkscape_scripting=InkscapeScripting()
+_inkscape_scripting=SimpleInkscapeScripting()
 
 def _refresh_global_variables():
 	global _ip

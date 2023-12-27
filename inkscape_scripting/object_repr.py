@@ -13,6 +13,20 @@ from simpinkscr.svg_to_simp_ink_script import SvgToPythonScript  # type: ignore
 
 _svg_to_python_script=SvgToPythonScript()
 
+def _unregister_gettext():
+	"""
+	This is needed so `_` can be used for last-output in interactive shell.
+
+	It must be called after the `SvgToPythonScript` object above is created.
+	"""
+	import builtins
+	try:
+		del builtins._
+	except AttributeError:
+		pass
+
+_unregister_gettext()
+
 _for_type_registers=[]
 
 def _for_type(t):
