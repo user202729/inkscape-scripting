@@ -11,7 +11,6 @@ from pathlib import Path
 import IPython
 from traitlets.config import Config
 
-from lxml import etree
 
 from inkscape_scripting.constants import connection_address, connection_family
 
@@ -135,23 +134,8 @@ def setup(ip)->None:
 	_ip=ip
 	ip.events.register("pre_run_cell", _pre_run_cell)
 	ip.events.register("post_run_cell", _post_run_cell)
-
-	formatter=ip.display_formatter.formatters['text/plain']
-
-	@partial(formatter.for_type, etree.ElementBase)
-	def format_element_base(o, p, cycle):
-		"""
-		Used to pretty-print `svg_root` etc. in IPython.
-		"""
-		try:
-			content=etree.tostring(o, pretty_print=True)
-		except:
-			p.text(repr(o))
-			return
-		try:
-			p.text(content.decode("u8"))
-		except UnicodeDecodeError:
-			p.text(content.decode("latin1"))
+	from inkscape_scripting.object_repr import formatter_setup
+	formatter_setup(ip)
 
 def main()->None:
 	c = Config()

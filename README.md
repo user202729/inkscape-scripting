@@ -18,6 +18,13 @@ Other extra features are listed below.
     This should open a window titled "Inkscape Scripting" with a "Cancel" and an "Apply" button. Leave it visible.
 
 4. From any terminal, run `inkscape_scripting_server`.
+5. An IPython interactive shell should appear.
+
+    Just like in SimpInkScr, as an initial test, try executing
+    ```python
+    circle((100, 100), 50)
+    ```
+    This should create a black circle of radius 50 at position (100, 100).
 
 ## Extra features
 
@@ -26,6 +33,7 @@ The additional extra features are listed here.
 * Allow getting the information on the currently selected object. Inkscape extension does not allow doing this conveniently however, so pressing a key from Inkscape is needed.
 * Vim integration.
 * Calling `str()` or `repr()` on an object gives a representation of that object that can be used to reconstruct that object.
+* Pretty-print objects. Try executing `svg_root` in the console, it will pretty-print the SVG structure.
 
 ## Common error messages
 
