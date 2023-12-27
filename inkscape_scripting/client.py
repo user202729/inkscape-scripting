@@ -28,7 +28,7 @@ def _connect(retries: int)->None:
 				timer.cancel()
 				conn.send(sys.argv)
 				data=conn.recv()
-				sys.stdout.write(data)
+				sys.stdout.buffer.write(data)
 				return
 	except OSError:
 		Path(connection_address).unlink()
