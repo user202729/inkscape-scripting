@@ -39,6 +39,15 @@ def _refresh_global_variables():
 	_ip.user_ns['user_args'] = _inkscape_scripting.options.user_args
 	_ip.user_ns['canvas'] = simple_inkscape_scripting._simple_top.canvas
 	_ip.user_ns['metadata'] = simple_inkscape_scripting.SimpleMetadata()
+	try:
+		# Inkscape 1.2+
+		convert_unit = _inkscape_scripting.svg.viewport_to_unit
+	except AttributeError:
+		# Inkscape 1.0 and 1.1
+		convert_unit = _inkscape_scripting.svg.unittouu
+	for unit in ['mm', 'cm', 'pt', 'px']:
+		_ip.user_ns[unit] = convert_unit('1' + unit)
+	_ip.user_ns['inch'] = convert_unit('1in')  # "in" is a keyword.
 
 def _pre_run_cell(info):
 	"""
@@ -82,7 +91,7 @@ def _click_window_button():
 	if _xdo is None:
 		from xdo import Xdo
 		_xdo = Xdo()
-	l=_xdo.search_windows(winname=b"Inkscape Scripting", only_visible=True)
+	l=_xdo.search_windows(winname=b"^Inkscape Scripting$", only_visible=True)
 	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
 	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
 	old_focused_window=_xdo.get_focused_window()
