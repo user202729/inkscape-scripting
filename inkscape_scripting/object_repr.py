@@ -112,7 +112,7 @@ def _repr_inkscape_object(node)->Any:
 
 @_for_type(SimpleObject)
 def format_simple_object(o, p, cycle)->None:
-	for i, stmt in enumerate(_repr_inkscape_object(o._inkscape_obj).code):
+	for i, stmt in enumerate(_repr_inkscape_object(o.get_inkex_object()).code):
 		if i!=0: p.breakable(";")
 		p.text(str(stmt))
 
