@@ -20,9 +20,14 @@ except ImportError:
 	import sys
 	sys.path.append("/usr/share/inkscape/extensions/")
 	import inkex  # type: ignore
+
+try:
+	import simpinkscr
+except ImportError:
 	sys.path.append(str(Path("~/.config/inkscape/extensions/SimpInkScr/").expanduser()))
-	from simpinkscr import simple_inkscape_scripting  # type: ignore
-	from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting  # type: ignore
+
+from simpinkscr import simple_inkscape_scripting  # type: ignore
+from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting  # type: ignore
 
 _connection: Optional[Connection]=None
 
