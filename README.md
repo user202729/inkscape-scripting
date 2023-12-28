@@ -34,6 +34,12 @@ The additional extra features are listed here.
 * Vim integration.
 * Calling `str()` or `repr()` on an object gives a representation of that object that can be used to reconstruct that object.
 * Pretty-print objects. Try executing `svg_root` in the console, it will pretty-print the SVG structure.
+* Press buttons on the main Inkscape GUI by e.g. `inkscape_press_keys("Ctrl+z")`.
+
+## Wishlist
+
+* Macro recording.
+* Ability to call other extensions programmatically.
 
 ## Common error messages
 
