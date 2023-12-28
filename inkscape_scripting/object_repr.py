@@ -63,7 +63,10 @@ def pretty_print_svg_root(svg_root, p)->None:
 		p.breakable(";")
 
 def _repr_inkscape_object(node)->Any:
-	# node is of type inkex.elements._base.BaseElement (e.g. inkex.Rectangle)
+	"""
+	node is of type inkex.elements._base.BaseElement (e.g. inkex.Rectangle)
+	return a SvgToPythonScript.Statement object.
+	"""
 	# copied from SimpInkScr/simpinkscr/svg_to_simp_ink_script.py → convert_all_shapes
 	if isinstance(node, inkex.Circle):
 		return _svg_to_python_script.convert_circle(node)

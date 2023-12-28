@@ -1,11 +1,12 @@
 #!/bin/python3
 import sys
-from typing import Any
+from typing import Any, Optional
 import tempfile
+import typing
 import time
 import io
 from functools import partial
-from multiprocessing.connection import Client
+from multiprocessing.connection import Client, Connection
 from pathlib import Path
 
 import IPython
@@ -14,20 +15,23 @@ from traitlets.config import Config
 from inkscape_scripting.constants import connection_address, connection_family
 
 try:
-	import inkex
+	import inkex  # type: ignore
 except ImportError:
 	import sys
 	sys.path.append("/usr/share/inkscape/extensions/")
-	import inkex
+	import inkex  # type: ignore
 	sys.path.append(str(Path("~/.config/inkscape/extensions/SimpInkScr/").expanduser()))
-	from simpinkscr import simple_inkscape_scripting
-	from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting
+	from simpinkscr import simple_inkscape_scripting  # type: ignore
+	from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting  # type: ignore
 
-_connection: Any=None
+_connection: Optional[Connection]=None
 
 _inkscape_scripting=SimpleInkscapeScripting()
 
-def _refresh_global_variables():
+# global get_ipython() instance
+_ip=typing.cast(IPython.core.interactiveshell.InteractiveShell, None)
+
+def _refresh_global_variables()->None:
 	global _ip
 	_ip.user_ns['svg_root'] = _inkscape_scripting.svg
 	_ip.user_ns['guides'] = simple_inkscape_scripting._simple_top.get_existing_guides()
@@ -44,7 +48,7 @@ def _refresh_global_variables():
 		_ip.user_ns[unit] = convert_unit('1' + unit)
 	_ip.user_ns['inch'] = convert_unit('1in')  # "in" is a keyword.
 
-def _pre_run_cell(info):
+def _pre_run_cell(info)->None:
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#pre-run-cell
 
@@ -76,7 +80,7 @@ def _pre_run_cell(info):
 _xdo: Any=None
 
 
-def _click_window_button():
+def _click_window_button()->None:
 	"""
 	Switch to the window with name "Inkscape Scripting" and press "Return" to (hopefully) click the button.
 	"""
@@ -84,7 +88,7 @@ def _click_window_button():
 	#traceback.print_stack()
 	global _xdo
 	if _xdo is None:
-		from xdo import Xdo
+		from xdo import Xdo  # type: ignore
 		_xdo = Xdo()
 	l=_xdo.search_windows(winname=b"^Inkscape Scripting$", only_visible=True)
 	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
@@ -98,7 +102,7 @@ def _click_window_button():
 	finally:
 		_xdo.focus_window(old_focused_window)
 
-def _post_run_cell(result):
+def _post_run_cell(result)->None:
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#post-run-cell
 	"""
@@ -118,8 +122,6 @@ def _post_run_cell(result):
 		_connection.__exit__(None, None, None)
 		_connection=None
 		_inkscape_scripting.clean_up()
-
-_ip=None  # global get_ipython() instance
 
 def setup(ip)->None:
 	"""
