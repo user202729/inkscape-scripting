@@ -189,6 +189,7 @@ def main()->None:
 	c.InteractiveShellApp.exec_lines = [
 		'import inkscape_scripting.server;' +
 		'inkscape_scripting.server.setup(get_ipython());' +
+		'from simpinkscr import *;' +
 		'from inkscape_scripting.server import *;'
 	]  # for some reason this must be kept ≤ 2 lines otherwise _pre_run_cell will be triggered at the start
 	IPython.start_ipython(config=c)

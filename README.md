@@ -40,6 +40,8 @@ The additional extra features are listed here.
 
 * Macro recording.
 * Ability to call other extensions programmatically.
+* In particular: Import TikZ.
+* Run command in shell mode.
 
 ## Common error messages
 
@@ -60,6 +62,8 @@ Refer to step 4 in "How to use" section for the proper way how to use the extens
 You probably accidentally focus the "Cancel" button instead of the "Apply" button. Just re-open the extension dialog.
 
 ## Development note
+
+Relevant issue (`inkscape --shell` render extension crashes): https://gitlab.com/inkscape/inkscape/-/issues/3653
 
 We use python-libxdo to press Enter to click the Apply button every time some code is executed.
 This is a workaround for the fact that Inkscape does not allow extension that continuously runs in the background to interact with Inkscape.
