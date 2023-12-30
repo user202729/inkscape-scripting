@@ -130,6 +130,8 @@ def _post_run_cell(result)->None:
 		# probably some error happened in the pre-hook, ignore
 		# alternatively, at the very beginning this post-hook is called exactly once (after the cell containing exec_lines is executed)
 		return
+	global _ip
+	simple_inkscape_scripting._simple_top.replace_all_guides(_ip.user_ns['guides'])
 	content: bytes=b""
 	try:
 		if _inkscape_scripting.has_changed(None):
