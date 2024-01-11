@@ -51,6 +51,17 @@ The additional extra features are listed here.
 * In particular: Import TikZ.
 * Run command in shell mode.
 
+* Allow inserting a TikZ figure, and bidirectional communication.
+
+    Well, look at source code of `tex4ht` I suppose...
+
+    `tex4ht` works by using TeX to compile `.tex` to `.dvi`, then `tex4ht` and `t4ht` are used to finish up.
+
+    The `htlatex` executable wraps both steps.
+
+* `dvisvgm --no-fonts` I suppose. Apparently Inkscape doesn't handle fonts well.
+* Actually Inkscape itself can also convert.
+
 ## Common error messages
 
 > Extension window cannot be found. Please read the documentation.

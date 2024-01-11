@@ -44,8 +44,10 @@ def _refresh_global_variables(args: list[str])->None:
 	_inkscape_scripting.parse_arguments(args)
 	assert _inkscape_scripting.options.input_file is not None
 	_inkscape_scripting.load_raw()
+	# construct the object. copied from  SimpInkScr/simpinkscr/simple_inkscape_scripting.py → def effect
 	simple_inkscape_scripting._simple_top=simple_inkscape_scripting.SimpleTopLevel(
 			_inkscape_scripting.svg, _inkscape_scripting)
+	simple_inkscape_scripting._simple_top.simple_pages=simple_inkscape_scripting._simple_top.get_existing_pages()
 	global _ip
 	_ip.user_ns['svg_root'] = _inkscape_scripting.svg
 	_ip.user_ns['guides'] = simple_inkscape_scripting._simple_top.get_existing_guides()
