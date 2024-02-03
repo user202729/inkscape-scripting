@@ -30,10 +30,6 @@ Other extra features are listed below.
 
 * Modifying the global variable `guides` will modify the list of guides, as usual.
 
-## Known bugs
-
-* Currently, if there is any guide, then any command executed will create an undo entry. (reported at https://github.com/spakin/SimpInkScr/issues/122)
-
 ## Extra features
 
 The additional extra features are listed here.
