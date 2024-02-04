@@ -5,6 +5,7 @@ import tempfile
 import typing
 import time
 import io
+import contextlib
 from functools import partial
 from multiprocessing.connection import Client, Connection
 from pathlib import Path
@@ -15,7 +16,7 @@ from traitlets.config import Config
 
 from inkscape_scripting.constants import connection_address, connection_family
 
-__all__=["inkscape_press_keys"]  # list of everything in this module that should be visible in user's terminal
+__all__=["inkscape_press_keys", "pause_extension_run"]  # list of everything in this module that should be visible in user's terminal
 
 try:
 	import inkex  # type: ignore
@@ -33,6 +34,7 @@ from simpinkscr import simple_inkscape_scripting  # type: ignore
 from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting  # type: ignore
 
 _connection: Optional[Connection]=None
+# this is None if we're connecting to a client
 
 _inkscape_scripting=SimpleInkscapeScripting()
 
@@ -163,6 +165,35 @@ def _post_run_cell(result)->None:
 		_connection=None
 		_inkscape_scripting.clean_up()
 
+@contextlib.contextmanager
+def pause_extension_run():
+	"""
+	While the client is running, the Inkscape window blocks input.
+
+	So, if you want to interact with Inkscape window, you need this context manager.
+
+	This can be nested, but it's not thread-safe.
+
+	Usage::
+
+		with break_extension_run():
+			...  # Inkscape main window can be interacted with here
+			with break_extension_run():
+				...  # this nested layer is no-op
+
+	..seealso:: :func:`inkscape_press_keys`.
+	"""
+	global _connection
+	if _connection is None:
+		yield
+	else:
+		_post_run_cell(None)
+		time.sleep(0.3)
+		try:
+			yield
+		finally:
+			_pre_run_cell(None)
+
 def _inkscape_press_keys_raw(keys: str|bytes|list[str]|list[bytes])->None:
 	if isinstance(keys, (str, bytes)): keys1=[keys]
 	keys=[key if isinstance(key, bytes) else key.encode("u8") for key in keys1]
@@ -187,11 +218,8 @@ def inkscape_press_keys(keys: str|bytes|list[str]|list[bytes])->None:
 	The format is the same as ``libxdo``.
 	Importantly, the string is case-sensitive -- using ``Ctrl+Z`` instead of ``Ctrl+z`` will not work!
 	"""
-	# We need to do this because, while the client is running, the Inkscape window blocks input.
-	_post_run_cell(None)
-	time.sleep(0.3)
-	_inkscape_press_keys_raw(keys)
-	_pre_run_cell(None)
+	with pause_extension_run():
+		_inkscape_press_keys_raw(keys)
 
 def setup(ip)->None:
 	"""

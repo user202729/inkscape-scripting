@@ -40,6 +40,14 @@ The additional extra features are listed here.
 * Pretty-print objects. Try executing `svg_root` in the console, it will pretty-print the SVG structure.
 * Press buttons on the main Inkscape GUI by e.g. `inkscape_press_keys("Ctrl+z")`.
 
+## Note
+
+While any cell is running, Inkscape main window blocks input --- if you want to interact with the main window, or otherwise (e.g. launch a `inkscape --active-window --shell` shell), you need `break_extension_run` context manager.
+
+Refer to its source code for details how to use it.
+
+`inkscape_press_keys` function does this automatically under the hood.
+
 ## Wishlist
 
 * Macro recording.
