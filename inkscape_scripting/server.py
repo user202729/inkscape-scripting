@@ -8,6 +8,7 @@ import io
 from functools import partial
 from multiprocessing.connection import Client, Connection
 from pathlib import Path
+import ast
 
 import IPython
 from traitlets.config import Config
@@ -86,9 +87,25 @@ def _pre_run_cell(info)->None:
 	Then after getting the data, we send the data to the code in the cell
 	After the code in the cell is done, we return the result to the client to print it on client's stdout
 	"""
-	_click_window_button()
-	args=_connect_to_client()
-	_refresh_global_variables(args)
+	try:
+		_click_window_button()
+		args=_connect_to_client()
+		_refresh_global_variables(args)
+	except:
+		# if an error happen, the cell will still be executed.
+		# As such, we do this in order to *not* actually execute the cell
+		# but we can't return an empty cell either, otherwise the error message from the pre-hook will be suppressed
+		global _ip
+		_ip.ast_transformers.append(_ASTTransformerDeleteEverything())
+		raise
+
+class _ASTTransformerDeleteEverything:
+	def visit(self, node):
+		assert isinstance(node, ast.Module), node
+		global _ip
+		_ip.ast_transformers.remove(self)
+		node.body.clear()
+		return node
 
 _xdo: Any=None
 
