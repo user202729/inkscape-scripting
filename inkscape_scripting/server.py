@@ -16,7 +16,7 @@ from traitlets.config import Config
 
 from inkscape_scripting.constants import connection_address, connection_family
 
-__all__=["inkscape_press_keys", "pause_extension_run"]  # list of everything in this module that should be visible in user's terminal
+__all__=["inkscape_press_keys", "pause_extension_run", "set_connect_to_client"]  # list of everything in this module that should be visible in user's terminal
 
 try:
 	import inkex  # type: ignore
@@ -81,6 +81,15 @@ def _connect_to_client()->list[str]:
 		break
 	return _connection.recv()[1:]
 
+_enable_connect_to_client: bool=True
+
+def set_connect_to_client(enable_connect_to_client: bool):
+	"""
+	The user can execute `set_connect_to_client(False)` so that it will run as an independent IPython shell.
+	"""
+	global _enable_connect_to_client
+	_enable_connect_to_client=enable_connect_to_client
+
 def _pre_run_cell(info)->None:
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#pre-run-cell
@@ -89,6 +98,8 @@ def _pre_run_cell(info)->None:
 	Then after getting the data, we send the data to the code in the cell
 	After the code in the cell is done, we return the result to the client to print it on client's stdout
 	"""
+	if not _enable_connect_to_client:
+		return
 	try:
 		_click_window_button()
 		args=_connect_to_client()

@@ -42,7 +42,9 @@ The additional extra features are listed here.
 
 ## Note
 
-While any cell is running, Inkscape main window blocks input --- if you want to interact with the main window, or otherwise (e.g. launch a `inkscape --active-window --shell` shell), you need `break_extension_run` context manager.
+While any cell is running, Inkscape main window blocks input --- if you want to interact with the main window, or otherwise (e.g. launch a `inkscape --active-window --shell` shell), you need `pause_extension_run` context manager.
+
+Yet another way is to execute `set_connect_to_client(False)` temporarily.
 
 Refer to its source code for details how to use it.
 
