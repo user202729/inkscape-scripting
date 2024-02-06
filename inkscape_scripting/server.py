@@ -37,33 +37,33 @@ from simpinkscr.simple_inkscape_scripting import SimpleInkscapeScripting  # type
 _connection: Optional[Connection]=None
 # this is None if we're connecting to a client
 
-_inkscape_scripting=SimpleInkscapeScripting()
+_simple_inkscape_scripting=SimpleInkscapeScripting()
 
 # global get_ipython() instance
 _ip=typing.cast(IPython.core.interactiveshell.InteractiveShell, None)
 
 def _refresh_global_variables(args: list[str])->None:
 	# taken from /usr/share/inkscape/extensions/inkex/base.py → def run
-	global _inkscape_scripting
-	_inkscape_scripting.parse_arguments(args)
-	assert _inkscape_scripting.options.input_file is not None
-	_inkscape_scripting.load_raw()
+	global _simple_inkscape_scripting
+	_simple_inkscape_scripting.parse_arguments(args)
+	assert _simple_inkscape_scripting.options.input_file is not None
+	_simple_inkscape_scripting.load_raw()
 	# construct the object. copied from  SimpInkScr/simpinkscr/simple_inkscape_scripting.py → def effect
 	simple_inkscape_scripting._simple_top=simple_inkscape_scripting.SimpleTopLevel(
-			_inkscape_scripting.svg, _inkscape_scripting)
+			_simple_inkscape_scripting.svg, _simple_inkscape_scripting)
 	simple_inkscape_scripting._simple_top.simple_pages=simple_inkscape_scripting._simple_top.get_existing_pages()
 	global _ip
-	_ip.user_ns['svg_root'] = _inkscape_scripting.svg
+	_ip.user_ns['svg_root'] = _simple_inkscape_scripting.svg
 	_ip.user_ns['guides'] = simple_inkscape_scripting._simple_top.get_existing_guides()
-	_ip.user_ns['user_args'] = _inkscape_scripting.options.user_args
+	_ip.user_ns['user_args'] = _simple_inkscape_scripting.options.user_args
 	_ip.user_ns['canvas'] = simple_inkscape_scripting._simple_top.canvas
 	_ip.user_ns['metadata'] = simple_inkscape_scripting.SimpleMetadata()
 	try:
 		# Inkscape 1.2+
-		convert_unit = _inkscape_scripting.svg.viewport_to_unit
+		convert_unit = _simple_inkscape_scripting.svg.viewport_to_unit
 	except AttributeError:
 		# Inkscape 1.0 and 1.1
-		convert_unit = _inkscape_scripting.svg.unittouu
+		convert_unit = _simple_inkscape_scripting.svg.unittouu
 	for unit in ['mm', 'cm', 'pt', 'px']:
 		_ip.user_ns[unit] = convert_unit('1' + unit)
 	_ip.user_ns['inch'] = convert_unit('1in')  # "in" is a keyword.
@@ -170,15 +170,15 @@ def _post_run_cell(result)->None:
 	simple_inkscape_scripting._simple_top.replace_all_guides(_ip.user_ns['guides'])
 	content: bytes=b""
 	try:
-		if _inkscape_scripting.has_changed(None):
+		if _simple_inkscape_scripting.has_changed(None):
 			with io.BytesIO() as f:
-				_inkscape_scripting.save(f)
+				_simple_inkscape_scripting.save(f)
 				content=f.getvalue()
 	finally:  # whatever error happens, must send to unblock the client
 		_connection.send(content)
 		_connection.__exit__(None, None, None)
 		_connection=None
-		_inkscape_scripting.clean_up()
+		_simple_inkscape_scripting.clean_up()
 
 @contextlib.contextmanager
 def pause_extension_run():
