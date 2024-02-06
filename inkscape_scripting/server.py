@@ -10,6 +10,7 @@ from functools import partial
 from multiprocessing.connection import Client, Connection
 from pathlib import Path
 import ast
+import subprocess
 
 import IPython
 from traitlets.config import Config
@@ -138,8 +139,10 @@ def _send_to_window(win: int, keys: list[bytes])->None:
 	old_focused_window=xdo.get_focused_window()
 	try:
 		xdo.focus_window(win)
-		for key in keys:
-			xdo.send_keysequence_window(window=win, keysequence=key)
+		#xdo.clear_active_modifiers(window=win)  # not implemented
+		#for key in keys:
+		#	xdo.send_keysequence_window(window=win, keysequence=key)
+		subprocess.run(["xdotool", "key", "--clearmodifiers", "--window", str(win)]+keys, check=True)
 	finally: # whatever error that might happen, must try to switch to old_focused_window
 		xdo.focus_window(old_focused_window)
 
@@ -149,6 +152,7 @@ def _click_window_button()->None:
 	"""
 	xdo=_init_xdo()
 	l=xdo.search_windows(winname=b"^Inkscape Scripting$", only_visible=True)
+	# xdotool search --name '^Inkscape Scripting$'
 	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
 	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
 	_send_to_window(l[0], [b"Return"])
