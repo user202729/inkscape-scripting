@@ -63,3 +63,14 @@ def inkscape_press_keys(keys: str|bytes|list[str]|list[bytes])->None:
 	with daemon.pause_extension_run():
 		_inkscape_press_keys_raw(keys)
 
+def click_extension_window_button()->None:
+	"""
+	Switch to the window with name "Inkscape Scripting" and press "Return" to (hopefully) click the button.
+	"""
+	xdo=_init_xdo()
+	l=xdo.search_windows(winname=b"^Inkscape Scripting$", only_visible=True)
+	# xdotool search --name '^Inkscape Scripting$'
+	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
+	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
+	_send_to_window(l[0], [b"Return"])
+

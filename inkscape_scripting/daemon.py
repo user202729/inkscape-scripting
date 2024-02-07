@@ -19,7 +19,7 @@ from pathlib import Path
 import subprocess
 
 from .constants import connection_address, connection_family
-from .interact import _init_xdo, _send_to_window
+from .interact import click_extension_window_button
 
 try:
 	import inkex  # type: ignore
@@ -77,17 +77,6 @@ def require_extension_run()->Generator:
 			assert instance is extension_run_instance
 	else:
 		yield
-
-def _click_window_button()->None:
-	"""
-	Switch to the window with name "Inkscape Scripting" and press "Return" to (hopefully) click the button.
-	"""
-	xdo=_init_xdo()
-	l=xdo.search_windows(winname=b"^Inkscape Scripting$", only_visible=True)
-	# xdotool search --name '^Inkscape Scripting$'
-	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
-	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
-	_send_to_window(l[0], [b"Return"])
 
 @contextmanager
 def _connect_to_client()->Generator[tuple[Any, Callable[[Any], None]], None, None]:
@@ -154,7 +143,7 @@ class ExtensionRun:
 			assert self._connection is None
 			self._stack.enter_context(_register_extension_run_object_globally(self))
 
-			_click_window_button()
+			click_extension_window_button()
 			args, self._connection=self._stack.enter_context(_connect_to_client())
 			del args[0]
 
