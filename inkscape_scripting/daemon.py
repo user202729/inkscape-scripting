@@ -153,11 +153,30 @@ class ExtensionRun:
 		with self._stack:
 			assert self._connection is None
 			self._stack.enter_context(_register_extension_run_object_globally(self))
-			self._stack.enter_context(_cleanup_global_simple_inkscape_scripting_object())
+
 			_click_window_button()
 			args, self._connection=self._stack.enter_context(_connect_to_client())
 			del args[0]
-			self._refresh_global_variables(args)
+
+			# taken from /usr/share/inkscape/extensions/inkex/base.py → def run
+			self._sis_instance=_sis_instance=SimpleInkscapeScripting()
+			self._stack.push(lambda exc_type, exc_value, traceback: _sis_instance.clean_up())
+			_sis_instance.parse_arguments(args)
+			assert _sis_instance.options.input_file is not None
+			_sis_instance.load_raw()
+
+			# construct the object. Copied from SimpInkScr/simpinkscr/simple_inkscape_scripting.py → def effect
+			self._stack.enter_context(_setup_global_simple_top(
+				simple_inkscape_scripting.SimpleTopLevel(_sis_instance.svg, _sis_instance)
+				))
+			simple_inkscape_scripting._simple_top.simple_pages=simple_inkscape_scripting._simple_top.get_existing_pages()
+
+			self.svg_root = _sis_instance.svg
+			self.guides = simple_inkscape_scripting._simple_top.get_existing_guides()
+			self.user_args = _sis_instance.options.user_args
+			self.canvas = simple_inkscape_scripting._simple_top.canvas
+			self.metadata = simple_inkscape_scripting.SimpleMetadata()
+
 			self._stack=self._stack.pop_all()
 		return self
 
@@ -167,26 +186,11 @@ class ExtensionRun:
 			send=self._connection
 			self._connection=None
 			simple_inkscape_scripting._simple_top.replace_all_guides(self.guides)
-			if _simple_inkscape_scripting.has_changed(None):
+			if self._sis_instance.has_changed(None):
 				with io.BytesIO() as f:
-					_simple_inkscape_scripting.save(f)
+					self._sis_instance.save(f)
 					send(f.getvalue())
 
-	def _refresh_global_variables(self, args: list[str])->None:
-		# taken from /usr/share/inkscape/extensions/inkex/base.py → def run
-		global _simple_inkscape_scripting
-		_simple_inkscape_scripting.parse_arguments(args)
-		assert _simple_inkscape_scripting.options.input_file is not None
-		_simple_inkscape_scripting.load_raw()
-		# construct the object. copied from  SimpInkScr/simpinkscr/simple_inkscape_scripting.py → def effect
-		simple_inkscape_scripting._simple_top=simple_inkscape_scripting.SimpleTopLevel(
-				_simple_inkscape_scripting.svg, _simple_inkscape_scripting)
-		simple_inkscape_scripting._simple_top.simple_pages=simple_inkscape_scripting._simple_top.get_existing_pages()
-		self.svg_root = _simple_inkscape_scripting.svg
-		self.guides = simple_inkscape_scripting._simple_top.get_existing_guides()
-		self.user_args = _simple_inkscape_scripting.options.user_args
-		self.canvas = simple_inkscape_scripting._simple_top.canvas
-		self.metadata = simple_inkscape_scripting.SimpleMetadata()
 
 extension_run_instance: Optional[ExtensionRun]=None
 """
@@ -200,13 +204,15 @@ def _register_extension_run_object_globally(e: ExtensionRun)->Generator:
 	global extension_run_instance
 	assert extension_run_instance is None
 	extension_run_instance=e
-	yield
-	assert extension_run_instance is e
-	extension_run_instance=None
-
-_simple_inkscape_scripting=SimpleInkscapeScripting()
+	try: yield
+	finally:
+		assert extension_run_instance is e
+		extension_run_instance=None
 
 @contextmanager
-def _cleanup_global_simple_inkscape_scripting_object():
-	yield
-	_simple_inkscape_scripting.clean_up()
+def _setup_global_simple_top(simple_top)->Generator:
+	assert simple_inkscape_scripting._simple_top is None
+	simple_inkscape_scripting._simple_top=simple_top
+	try: yield
+	finally: simple_inkscape_scripting._simple_top=None
+
