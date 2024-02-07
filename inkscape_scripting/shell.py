@@ -1,3 +1,5 @@
+from __future__	import annotations
+
 from pathlib import Path
 import tempfile
 from typing import overload, Optional
@@ -17,11 +19,12 @@ class InkscapeShell:
 	Usage::
 
 		with InkscapeShell() as shell:
-			shell.send_command("select-all")
+			print(shell.send_command("query-all"))
 	"""
 	shell: Optional[subprocess.Popen]=None
 
 	def __enter__(self)->InkscapeShell:
+		assert self.shell is None
 		with pause_extension_run():
 			self.shell=subprocess.Popen(
 					["inkscape", "--shell", "--active-window"],
@@ -44,7 +47,7 @@ class InkscapeShell:
 			assert self.shell.stdout is not None
 			chunk=self.shell.stdout.read(1)
 			content+=chunk
-			assert chunk, content
+			assert chunk, repr(content)
 			if content.endswith("\n> "): break
 		content=content.removesuffix("\n> ")
 		return content
@@ -83,6 +86,7 @@ class InkscapeShell:
 		self.shell.stdin.close()
 		self.shell.stdout.close()
 		self.shell.wait(timeout=1)
+		self.shell=None
 
 	def __del__(self)->None:
 		self._stop_shell()

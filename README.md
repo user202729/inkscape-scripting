@@ -50,6 +50,35 @@ Refer to its source code for details how to use it.
 
 `inkscape_press_keys` function does this automatically under the hood.
 
+## Python API: `ExtensionRun` object
+
+The extension and shell part can be run standalone as well.
+
+Example:
+```python
+from inkscape_scripting.daemon import ExtensionRun
+from simpinkscr.simple_inkscape_scripting import all_shapes
+with ExtensionRun() as a:
+    print(all_shapes())
+    print(len(a.guides))
+    a.guides=[]
+```
+
+The property `guides` above has the same meaning as that in the `SimpInkScr` plugin.
+Nevertheless, you can still run at most one extension at once.
+
+## Python API: Shell mode
+
+This plugin can interact with Inkscape in two different ways: through `inkscape --shell --active-window` feature, or through the extension.
+
+The mode above uses the extension. Using shell mode is also possible.
+
+Example:
+```python
+with InkscapeShell() as shell:
+    print(shell.send_command("query-all"))
+```
+
 ## Wishlist
 
 * Macro recording.

@@ -94,12 +94,12 @@ def _connect_to_client()->Generator[tuple[Any, Callable[[Any], None]], None, Non
 	"""
 	Connect to the client.
 
-	Example use:
+	Example use::
 
-	with _connect_to_client() as f:
-		argv=connection.recv()  # as we actually use here
-		# do something with argv[1:]
-		connection.send(...)
+		with _connect_to_client() as argv, f:
+			f(content_to_be_sent)
+
+	We allow receiving exactly one value, and send back exactly one value.
 
 	There are two situations which may happen:
 	* If the client has not started a (listening) server yet, the __enter__ will fail immediately. In that case, we retry.
@@ -135,7 +135,9 @@ class ExtensionRun:
 	There cannot be more than one extension running at a time, so this object should be singleton.
 
 	Usage::
-		...
+		with ExtensionRun() as a:
+			print(len(a.guides))
+			a.guides=[]
 	"""
 
 	svg_root: Any=None

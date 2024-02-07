@@ -76,10 +76,10 @@ def _setup_units_once(info)->None:
 	global _ip
 	try:
 		# Inkscape 1.2+
-		convert_unit = daemon._simple_inkscape_scripting.svg.viewport_to_unit
+		convert_unit = daemon.extension_run_instance.svg_root.viewport_to_unit
 	except AttributeError:
 		# Inkscape 1.0 and 1.1
-		convert_unit = daemon._simple_inkscape_scripting.svg.unittouu
+		convert_unit = daemon.extension_run_instance.svg_root.unittouu
 	for unit in ['mm', 'cm', 'pt', 'px']:
 		_ip.user_ns[unit] = convert_unit('1' + unit)
 	_ip.user_ns['inch'] = convert_unit('1in')  # "in" is a keyword.
