@@ -17,7 +17,7 @@ Other extra features are listed below.
 
     This should open a window titled "Inkscape Scripting" with a "Cancel" and an "Apply" button. Leave it visible.
 
-4. From any terminal, run `inkscape_scripting_server`.
+4. From any terminal, run `inkscape_scripting_daemon`.
 5. An IPython interactive shell should appear.
 
     Just like in SimpInkScr, as an initial test, try executing

@@ -1,4 +1,9 @@
 #!/bin/python3
+"""
+Handles the client half that is related to the Inkscape extension.
+This part does not execute any code (it must not even import inkex in order to save time).
+Its only role is to send the code over to the daemon.
+"""
 #import time
 #start_time=time.time()
 

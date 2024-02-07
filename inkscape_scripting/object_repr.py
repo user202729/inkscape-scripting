@@ -1,6 +1,7 @@
 """
 Implements logic to pretty-print objects.
 """
+from __future__	import annotations
 
 from typing import Any
 
