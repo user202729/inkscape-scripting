@@ -93,6 +93,7 @@ def setup(ip)->None:
 	ip is the result of get_ipython().
 	"""
 	global _ip
+	if _ip is ip: return
 	assert _ip is None
 	_ip=ip
 	ip.events.register("pre_run_cell", _pre_run_cell)
