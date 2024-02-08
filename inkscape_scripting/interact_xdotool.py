@@ -11,22 +11,10 @@ def _focus_window(win: int)->None:
 	subprocess.run(["xdotool", "windowfocus", str(win)], check=True)
 
 def _search_windows(s: str)->list[int]:
-	retry=0
-	while True:
-		process=subprocess.run(["xdotool", "search", "--name", s],
-					stdout=subprocess.PIPE,
-					stderr=subprocess.PIPE)
-		if process.stderr:  # TODO fix properly
-			raise RuntimeError(process.stderr)
-		if process.statuscode not in [0, 1]:
-			raise RuntimeError("Process xdotool exited with error")
-
-		try:
-			return [int(x) for x in process.stdout.split()]
-		except:
-			retry+=1
-			if retry>=10: raise
-			time.sleep(0.05)
+	# older versions of xdotool has a bug https://github.com/jordansissel/xdotool/pull/335
+	# we no longer need the bug fix now, so the fix is removed
+	process=subprocess.run(["xdotool", "search", "--name", s], stdout=subprocess.PIPE, check=True)
+	return [int(x) for x in process.stdout.split()]
 
 def _send_to_window(win: int, keys: list[bytes])->None:
 	"""
