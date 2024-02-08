@@ -32,6 +32,14 @@ def set_connect_to_client(enable_connect_to_client: bool)->None:
 
 _units_are_setup: bool=False
 
+_ipython_extension_run_instance: Optional[daemon.ExtensionRun]=None
+"""
+Stores the instance of ExtensionRun that is started by IPython implicit extension run.
+
+Note that if the user runs an extension manually (with ExtensionRun().__enter__() for example)
+and it sets global variable daemon.extension_run_instance, we must not stop it
+"""
+
 def _pre_run_cell(info)->None:
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#pre-run-cell
@@ -40,11 +48,11 @@ def _pre_run_cell(info)->None:
 	Then after getting the data, we send the data to the code in the cell
 	After the code in the cell is done, we return the result to the client to print it on client's stdout
 	"""
-	if not _enable_connect_to_client:
-		return
-	global _ip, _units_are_setup
+	if not _enable_connect_to_client: return
+	global _ip, _units_are_setup, _ipython_extension_run_instance
 	try:
-		extension_run=daemon.ExtensionRun().__enter__()
+		assert _ipython_extension_run_instance is None
+		extension_run=_ipython_extension_run_instance=daemon.ExtensionRun().__enter__()
 		_ip.user_ns['svg_root'] =extension_run.svg_root
 		_ip.user_ns['guides']   =extension_run.guides
 		_ip.user_ns['user_args']=extension_run.user_args
@@ -74,18 +82,20 @@ def _post_run_cell(result)->None:
 	"""
 	https://ipython.readthedocs.io/en/stable/config/callbacks.html#post-run-cell
 	"""
-	extension_run=daemon.extension_run_instance
+	global _ipython_extension_run_instance
+	extension_run=_ipython_extension_run_instance
 	if extension_run is None:
-		# probably some error happened in the pre-hook, ignore
-		# alternatively, at the very beginning this post-hook is called exactly once (after the cell containing exec_lines is executed)
 		return
+	_ipython_extension_run_instance=None
 	global _ip
-	extension_run.svg_root =_ip.user_ns['svg_root']
-	extension_run.guides   =_ip.user_ns['guides']
-	extension_run.user_args=_ip.user_ns['user_args']
-	extension_run.canvas   =_ip.user_ns['canvas']
-	extension_run.metadata =_ip.user_ns['metadata']
-	extension_run.__exit__(None, None, None)
+	try:
+		extension_run.svg_root =_ip.user_ns['svg_root']
+		extension_run.guides   =_ip.user_ns['guides']
+		extension_run.user_args=_ip.user_ns['user_args']
+		extension_run.canvas   =_ip.user_ns['canvas']
+		extension_run.metadata =_ip.user_ns['metadata']
+	finally:
+		extension_run.__exit__(None, None, None)
 
 def setup(ip)->None:
 	"""

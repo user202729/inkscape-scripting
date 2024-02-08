@@ -16,7 +16,7 @@ def _search_windows(s: str)->list[int]:
 	process=subprocess.run(["xdotool", "search", "--name", s], stdout=subprocess.PIPE, check=True)
 	return [int(x) for x in process.stdout.split()]
 
-def _send_to_window(win: int, keys: list[bytes])->None:
+def _execute_in_window(win: int, cmd: list[str])->None:
 	"""
 	Send a sequence of keys of a window, by switching focus to that window, send the keys, then switch back.
 	win and keys are like python-libxdo's format.
@@ -24,9 +24,12 @@ def _send_to_window(win: int, keys: list[bytes])->None:
 	old_focused_window=int(subprocess.run(["xdotool", "getwindowfocus"], stdout=subprocess.PIPE, check=True).stdout)
 	try:
 		_focus_window(win)
-		subprocess.run(["xdotool", "key", "--clearmodifiers", "--window", str(win)]+[key.decode('u8') for key in keys], check=True)
+		subprocess.run(cmd, check=True)
 	finally: # whatever error that might happen, must try to switch to old_focused_window
 		_focus_window(old_focused_window)
+
+def _send_to_window(win: int, keys: list[bytes])->None:
+	_execute_in_window(win, ["xdotool", "key", "--clearmodifiers", "--window", str(win)]+[key.decode('u8') for key in keys])
 
 def _inkscape_press_keys_raw(keys: str|bytes|list[str]|list[bytes])->None:
 	if isinstance(keys, (str, bytes)): keys1=[keys]
@@ -61,5 +64,5 @@ def click_extension_window_button()->None:
 	l=_search_windows("^Inkscape Scripting$")
 	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
 	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
-	_send_to_window(l[0], [b"Return"])
+	_execute_in_window(l[0], ["xdotool", "keyup", "--clearmodifiers", "Return", "key", "--clearmodifiers", "Return"])
 

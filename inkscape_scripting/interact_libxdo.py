@@ -1,3 +1,6 @@
+"""
+Old implementation of interact() using libxdo. Faster but currently buggy.
+"""
 from __future__	import annotations
 
 from typing import Any
@@ -65,4 +68,4 @@ def click_extension_window_button()->None:
 	# xdotool search --name '^Inkscape Scripting$'
 	if len(l)==0: raise Exception("Extension window cannot be found. Please read the documentation.")
 	if len(l)>=2: raise Exception("Multiple windows found with the extension's name?")
-	_send_to_window(l[0], [b"Return"])
+	#_send_to_window(l[0], [b"Return"]) #TODO

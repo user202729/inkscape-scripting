@@ -72,11 +72,12 @@ def require_extension_run()->Generator:
 	"""
 	global extension_run_instance
 	if extension_run_instance is None:
-		with ExtensionRun().__enter__() as instance:
-			yield
-			assert instance is extension_run_instance
+		extension_run_instance=ExtensionRun()
+		with _global_extension_run_instance:
+			yield extension_run_instance
+			# note that if pause_extension_run() is nested inside require_extension_run then the instance may be modified halfway
 	else:
-		yield
+		yield extension_run_instance
 
 @contextmanager
 def _connect_to_client()->Generator[tuple[Any, Callable[[Any], None]], None, None]:
@@ -160,6 +161,7 @@ class ExtensionRun:
 				))
 			simple_inkscape_scripting._simple_top.simple_pages=simple_inkscape_scripting._simple_top.get_existing_pages()
 
+			self._stack.enter_context(self._set_properties_to_none())
 			self.svg_root = _sis_instance.svg
 			self.guides = simple_inkscape_scripting._simple_top.get_existing_guides()
 			self.user_args = _sis_instance.options.user_args
@@ -168,6 +170,15 @@ class ExtensionRun:
 
 			self._stack=self._stack.pop_all()
 		return self
+
+	@contextmanager
+	def _set_properties_to_none(self)->Generator:
+		yield
+		self.svg_root=None
+		self.guides=None
+		self.user_args=None
+		self.canvas=None
+		self.metadata=None
 
 	def __exit__(self, exc_type, exc_value, traceback)->None:
 		with self._stack:
@@ -187,6 +198,20 @@ The global instance of the running ExtensionRun object.
 
 Code other than :func:`_register_extension_run_object_globally` must not modify this variable.
 """
+
+class _GlobalExtensionRun:
+	"""
+	A class that is a thin wrapper over the current extension_run_instance object.
+	"""
+	def __enter__(self)->ExtensionRun:
+		assert extension_run_instance is not None
+		return extension_run_instance.__enter__()
+	def __exit__(self, exc_type, exc_value, traceback)->None:
+		assert extension_run_instance is not None
+		extension_run_instance.__exit__(exc_type, exc_value, traceback)
+	# note that extension_run_instance may have changed between __enter__ and __exit__
+
+_global_extension_run_instance=_GlobalExtensionRun()
 
 @contextmanager
 def _register_extension_run_object_globally(e: ExtensionRun)->Generator:
