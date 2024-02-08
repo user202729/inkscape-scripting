@@ -72,8 +72,8 @@ def require_extension_run()->Generator:
 	"""
 	global extension_run_instance
 	if extension_run_instance is None:
-		extension_run_instance=ExtensionRun()
 		with _global_extension_run_instance:
+			assert extension_run_instance is not None
 			yield extension_run_instance
 			# note that if pause_extension_run() is nested inside require_extension_run then the instance may be modified halfway
 	else:
@@ -204,8 +204,8 @@ class _GlobalExtensionRun:
 	A class that is a thin wrapper over the current extension_run_instance object.
 	"""
 	def __enter__(self)->ExtensionRun:
-		assert extension_run_instance is not None
-		return extension_run_instance.__enter__()
+		assert extension_run_instance is None
+		return ExtensionRun().__enter__()
 	def __exit__(self, exc_type, exc_value, traceback)->None:
 		assert extension_run_instance is not None
 		extension_run_instance.__exit__(exc_type, exc_value, traceback)
