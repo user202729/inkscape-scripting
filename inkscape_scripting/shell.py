@@ -5,6 +5,7 @@ import tempfile
 from typing import overload, Optional
 from dataclasses import dataclass
 import subprocess
+import time
 
 from .daemon import pause_extension_run
 
@@ -22,22 +23,36 @@ class InkscapeShell:
 			print(shell.send_command("query-all"))
 	"""
 	shell: Optional[subprocess.Popen]=None
+	num_retries_wait_for_inkscape: int=10
+	retry_wait_time: float=0.2
 
 	def __enter__(self)->InkscapeShell:
 		assert self.shell is None
 		with pause_extension_run():
-			self.shell=subprocess.Popen(
-					["inkscape", "--shell", "--active-window"],
-					stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-					text=True, encoding='u8')
-			assert self.shell.stdout is not None
-			line=self.shell.stdout.readline()
-			assert line.startswith("Inkscape interactive shell mode")
-			line=self.shell.stdout.readline()
-			assert line==" Input of the form:\n"
-			line=self.shell.stdout.readline()
-			prompt=self.shell.stdout.read(2)
-			assert prompt=="> "
+			for _ in range(self.num_retries_wait_for_inkscape):
+				self.shell=subprocess.Popen(
+						["inkscape", "--shell", "--active-window"],
+						stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+						text=True, encoding='u8')
+				assert self.shell.stdout is not None
+				line=self.shell.stdout.readline()
+				stderr_line=None
+				if not line.strip():
+					stderr_line=self.shell.stderr.readline()
+					if stderr_line.startswith(("No active desktop to run",
+								#"terminate after throwing an instance of 'Gio::DBus::Error'"
+								)):
+						self._stop_shell()
+						continue
+				assert line.startswith("Inkscape interactive shell mode"), repr((line, stderr_line))
+				line=self.shell.stdout.readline()
+				assert line==" Input of the form:\n", repr(line)
+				line=self.shell.stdout.readline()
+				prompt=self.shell.stdout.read(2)
+				assert prompt=="> ", repr(prompt)
+				break
+			else:
+				raise RuntimeError("No active window found")
 		return self
 
 	def _read_until_prompt(self)->str:
@@ -85,6 +100,7 @@ class InkscapeShell:
 		assert self.shell.stdout is not None
 		self.shell.stdin.close()
 		self.shell.stdout.close()
+		self.shell.stderr.close()
 		self.shell.wait(timeout=1)
 		self.shell=None
 
