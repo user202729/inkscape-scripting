@@ -31,18 +31,22 @@ def _execute_in_window(win: int, cmd: list[str])->None:
 def _send_to_window(win: int, keys: list[bytes])->None:
 	_execute_in_window(win, ["xdotool", "key", "--clearmodifiers", "--window", str(win)]+[key.decode('u8') for key in keys])
 
-def _inkscape_press_keys_raw(keys: str|bytes|list[str]|list[bytes])->None:
-	if isinstance(keys, (str, bytes)): keys1=[keys]
-	keys=[key.decode('u8') if isinstance(key, bytes) else key for key in keys1]
+def main_inkscape_window_id()->int:
 	l=_search_windows(" - Inkscape$")
 	if len(l)==0: raise Exception("Inkscape window cannot be found.")
 	if len(l)>=2: raise Exception("Multiple Inkscape windows visible, cannot determine which one is focused.")
+	return l[0]
+
+def _inkscape_press_keys_raw(keys: str|bytes|list[str]|list[bytes])->None:
+	if isinstance(keys, (str, bytes)): keys1=[keys]
+	keys=[key.decode('u8') if isinstance(key, bytes) else key for key in keys1]
+	win=main_inkscape_window_id()
 	# we don't use _send_to_window here because at this point the "extension running" dialog is still visible for a brief moment
 	# and for some reason get_focused_window() or get_focused_window_sane() will raise an XError
 	# we don't really need to switch focus back to the previous window anyway because later on _pre_run_cell() will do something
-	_focus_window(l[0])
+	_focus_window(win)
 	for key in keys:
-		subprocess.run(["xdotool", "key", "--window", str(l[0])]+keys, check=True)
+		subprocess.run(["xdotool", "key", "--window", str(win)]+keys, check=True)
 
 def inkscape_press_keys(keys: str|bytes|list[str]|list[bytes])->None:
 	"""
