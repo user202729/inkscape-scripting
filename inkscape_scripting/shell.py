@@ -86,7 +86,9 @@ class InkscapeShell:
 				(Path(tempfile.gettempdir())/"active_desktop_commands.xml").unlink(missing_ok=True)
 				self.shell.stdin.write(a+"\n")
 				self.shell.stdin.flush()
+				#print(">> sent command", a)
 				result.append(self._read_until_prompt())
+				#print("<< received ", result[-1])
 			if isinstance(s, str): return result[0]
 			return result
 

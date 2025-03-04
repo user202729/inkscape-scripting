@@ -28,17 +28,18 @@ Other extra features are listed below.
 
 ## Shared features
 
-* Modifying the global variable `guides` will modify the list of guides, as usual.
+Refer to https://github.com/spakin/SimpInkScr/wiki/Quick-reference for a list of supported features.
+
+Note: Modifying the global variable `guides` will modify the list of guides, as usual.
 
 ## Extra features
 
 The additional extra features are listed here.
 
+* **Pretty-print objects:** Try executing `svg_root` in the console, it will pretty-print the SVG structure.
+* **Meaningful string representation**: Calling `str()` or `repr()` on an object gives a representation of that object that can be used to reconstruct that object.
+* **`inkscape_press_keys()`:** Press buttons on the main Inkscape GUI by e.g. `inkscape_press_keys("Ctrl+z")`.
 * Allow getting the information on the currently selected object. Inkscape extension does not allow doing this conveniently however, so pressing a key from Inkscape is needed.
-* Vim integration.
-* Calling `str()` or `repr()` on an object gives a representation of that object that can be used to reconstruct that object.
-* Pretty-print objects. Try executing `svg_root` in the console, it will pretty-print the SVG structure.
-* Press buttons on the main Inkscape GUI by e.g. `inkscape_press_keys("Ctrl+z")`.
 
 ## Note
 
